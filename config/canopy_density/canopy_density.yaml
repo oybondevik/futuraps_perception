@@ -1,0 +1,31 @@
+canopy_density_node:
+  ros__parameters:
+    cloud_topic: "/local_map_filtered"   # set to your actual filtered cloud topic
+    default_frame: "base_link"
+    publish_default: true
+    publish_rate_hz: 2.0
+    max_buffer_sec: 2.0
+
+    mode: "ortho" # "ortho" or "column"
+
+    # Default periodic grid (can still be overridden via service)
+    min_x: -3.0
+    max_x:  2.0
+    min_z: -0.2
+    max_z:  2.0
+    cell_size: 0.20
+    min_y: -2.0
+    max_y:  2.0
+    vy: 0.10
+    k_min_points: 3
+    y_min_canopy: 0.5
+    use_column_density: true
+    apply_ema: true
+    alpha: 0.2
+    frame_id: "base_link"
+    time_window: 0.75
+
+canopy_density_viz:
+  ros__parameters:
+    alpha: 0.85
+    height_offset: 0.01

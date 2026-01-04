@@ -1,0 +1,14 @@
+closest_grid_server:
+  ros__parameters:
+    cloud_topic: "/local_map_filtered"
+    base_link: "base_link"
+
+cloud_bounds_server:
+  ros__parameters:
+    cloud_topic: "/local_map_filtered"
+    base_link: "base_link"
+
+surface_normal_server:
+  ros__parameters:
+    cloud_topic: "/local_map_filtered"
+    base_link: "base_link"

@@ -3,6 +3,7 @@ rtabmap:
     # Frames / TF
     frame_id: "base_link"
     odom_frame_id: "odom"
+    odom_topic: "/odom"
     map_frame_id: "map"
     publish_tf: true
     wait_for_transform: 0.2
@@ -19,3 +20,10 @@ rtabmap:
     # Behavior
     delete_db_on_start: true
     verbose: false
+
+    # Disable loop closure
+    Kp/MaxFeatures: "-1"
+
+    # # Enable GPS usage in pose graph optimization
+    # Optimizer/PriorsIgnored: "false"
+    # Rtabmap/LoopGps: "true"

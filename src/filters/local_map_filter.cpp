@@ -7,6 +7,8 @@
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/filters/voxel_grid.h>
 
+#include <chrono> 
+
 namespace futuraps {
 
 using pclRGB = pcl::PointXYZRGB;
@@ -98,6 +100,9 @@ void LocalMapFilterNode::cloudCallback(const sensor_msgs::msg::PointCloud2::Shar
 {
   if (!msg) return;
 
+  // --- Start timing ---
+  auto t_start = std::chrono::steady_clock::now();
+
   // 0) Transform to target frame (so Z is robot-up)
   sensor_msgs::msg::PointCloud2 cloud_tf = *msg;
   if (transform_to_target_ && msg->header.frame_id != target_frame_) {
@@ -105,12 +110,28 @@ void LocalMapFilterNode::cloudCallback(const sensor_msgs::msg::PointCloud2::Shar
       auto tf = tf_buffer_.lookupTransform(target_frame_, msg->header.frame_id, tf2::TimePointZero);
       tf2::doTransform(*msg, cloud_tf, tf);
     } catch (const tf2::TransformException &ex) {
+      auto t_end = std::chrono::steady_clock::now();
+      double dt_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+
+      std::size_t in_points =
+        static_cast<std::size_t>(msg->width) * static_cast<std::size_t>(msg->height);
+
+      // Log failure timing as well (with 0 output points)
+      RCLCPP_INFO(
+        get_logger(),
+        "PROC_TIME,node=local_map_filter,dt_ms=%.3f,in_pts=%zu,out_pts=%zu",
+        dt_ms, in_points, static_cast<std::size_t>(0));
+
       RCLCPP_WARN_THROTTLE(get_logger(), *this->get_clock(), 2000,
                            "TF %s->%s failed: %s",
                            msg->header.frame_id.c_str(), target_frame_.c_str(), ex.what());
       return;
     }
   }
+
+  // Count input points (after TF but equivalent)
+  std::size_t in_points =
+    static_cast<std::size_t>(cloud_tf.width) * static_cast<std::size_t>(cloud_tf.height);
 
   // Convert to PCL
   pcl::PointCloud<pclRGB>::Ptr cloud(new pcl::PointCloud<pclRGB>());
@@ -198,7 +219,18 @@ void LocalMapFilterNode::cloudCallback(const sensor_msgs::msg::PointCloud2::Shar
   out.header.stamp = this->now();
   out.header.frame_id = transform_to_target_ ? target_frame_ : cloud_tf.header.frame_id;
   pub_out_->publish(out);
+
+  // --- End timing + log ---
+  std::size_t out_points = static_cast<std::size_t>(out.width) * static_cast<std::size_t>(out.height);
+  auto t_end = std::chrono::steady_clock::now();
+  double dt_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+
+  RCLCPP_INFO(
+    get_logger(),
+    "PROC_TIME,node=local_map_filter,dt_ms=%.3f,in_pts=%zu,out_pts=%zu",
+    dt_ms, in_points, out_points);
 }
+
 
 } // namespace futuraps
 

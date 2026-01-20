@@ -46,8 +46,7 @@ private:
 
   void cloud_callback(sensor_msgs::msg::PointCloud2::SharedPtr msg)
   {
-    // Optionally verify frame_id matches what we expect.
-    // If not, you can warn here. For now we just keep it.
+
     latest_cloud_ = msg;
   }
 
@@ -55,7 +54,6 @@ private:
     const futuraps_perception::srv::GetGlobalNormal::Request::SharedPtr req,
     futuraps_perception::srv::GetGlobalNormal::Response::SharedPtr      resp)
   {
-    // default "no data"
     resp->nx = resp->ny = resp->nz = std::numeric_limits<float>::quiet_NaN();
     resp->cx = resp->cy = resp->cz = 0.0f;
     resp->confidence = 0.0f;
@@ -66,9 +64,6 @@ private:
       return;
     }
 
-    // (Optional) check req->frame_id vs latest_cloud_->header.frame_id
-    // If they differ, ideally you'd TF-transform the cloud into req->frame_id.
-    // We're skipping TF now. We'll just warn if mismatch.
     if (req->frame_id != latest_cloud_->header.frame_id) {
       RCLCPP_WARN_THROTTLE(
         get_logger(), *get_clock(), 2000,
@@ -135,8 +130,7 @@ private:
       return;
     }
 
-    // For SelfAdjointEigenSolver, eigenvalues are ascending.
-    // Smallest eigenvalue's eigenvector = plane normal.
+
     Eigen::Vector3f n = es.eigenvectors().col(0);
     if (!std::isfinite(n[0]) || !std::isfinite(n[1]) || !std::isfinite(n[2])) {
       RCLCPP_WARN(get_logger(), "Computed invalid normal (NaN).");

@@ -19,7 +19,7 @@ public:
     frame_id_        = declare_parameter<std::string>("grid_frame","base_link");
 
     // Color tuning
-    alpha_  = declare_parameter<double>("alpha", 1.0);     // not used by PointCloud2
+    alpha_  = declare_parameter<double>("alpha", 1.0);
     gain_   = declare_parameter<double>("gain", 2.0);
     bias_   = declare_parameter<double>("bias", 0.0);
     gamma_  = declare_parameter<double>("gamma", 0.7);
@@ -59,9 +59,7 @@ private:
       grid = grid_;
     }
 
-    // Only color if frames match (or you already publish cloud in the same frame)
     if (!grid.header.frame_id.empty() && grid.header.frame_id != msg->header.frame_id) {
-      // For simplicity here, skip mismatched frames. You can add TF later if needed.
       RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000,
                            "Colorizer: cloud frame '%s' != grid frame '%s' (skipping)",
                            msg->header.frame_id.c_str(), grid.header.frame_id.c_str());
@@ -70,8 +68,6 @@ private:
 
     sensor_msgs::msg::PointCloud2 out = *msg;
 
-    // Ensure RGB field exists (float RGB packed into a single 32-bit field named "rgb")
-    // If your input already has RGB, we overwrite it. Otherwise, add it.
     bool has_rgb = false;
     for (auto &f : out.fields) if (f.name == "rgb") has_rgb = true;
     if (!has_rgb) {
@@ -79,7 +75,6 @@ private:
       mod.setPointCloud2FieldsByString(2, "xyz", "rgb");
     }
 
-    // Build a small helper to index the grid
     GridSpec g{};
     g.min_x = grid.origin_x;
     g.min_z = grid.origin_z;
@@ -120,7 +115,7 @@ private:
       float R=128, G=128, B=128;
       if (!std::isnan(d)) {
         // normalize & boost
-        float v = (d - vmin) / span;               // 0..1
+        float v = (d - vmin) / span;
         v = std::clamp(v - bias, 0.0f, 1.0f);
         v = std::pow(v, gamma);
         v = std::clamp(v * gain, 0.0f, 1.0f);

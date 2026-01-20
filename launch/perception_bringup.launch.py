@@ -1,4 +1,3 @@
-# launch/bringup_local.launch.py
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -18,7 +17,6 @@ def generate_launch_description():
     use_exg = DeclareLaunchArgument("use_exg", default_value="false")
 
     # ---- Optional static TF: parent -> camera ----
-    # Set publish_cam_tf:=true ONLY if your robot does NOT already publish this TF.
     publish_cam_tf = DeclareLaunchArgument("publish_cam_tf", default_value="true")
 
     cam_parent_frame = DeclareLaunchArgument(
@@ -34,11 +32,10 @@ def generate_launch_description():
     cam_roll = DeclareLaunchArgument("cam_roll", default_value="1.5708")
     cam_pitch = DeclareLaunchArgument("cam_pitch", default_value="0.0")
     cam_yaw = DeclareLaunchArgument("cam_yaw", default_value="1.5708")
+    # cam_yaw = DeclareLaunchArgument("cam_yaw", default_value="0.7854")
 
     # ---- RTAB-Map input selection + topics ----
-    rgbd_mode = DeclareLaunchArgument(
-        "rgbd_mode", default_value="false"
-    )  # true => use rgbd_topic
+    rgbd_mode = DeclareLaunchArgument("rgbd_mode", default_value="false")
     run_vo = DeclareLaunchArgument("run_vo", default_value="false")
 
     rgb_topic = DeclareLaunchArgument(

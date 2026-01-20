@@ -1,7 +1,7 @@
 local_map_filter:
   ros__parameters:
     #Input/Output topics
-    input_topic: "/octomap_cloud/local_vox"
+    input_topic: "/crop_box_filtered_cloud"
     output_topic: "/local_map_filtered"
 
     # Frames
@@ -23,11 +23,11 @@ local_map_filter:
     voxel_leaf: 0.01
 
     # Stage 4 (optional): ExG
-    use_exg: false                # << flip this true/false
+    use_exg: true
     normalize_rgb: true
-    exg_threshold: 0.01
+    exg_threshold: 0.0
     drop_low_intensity: false
-    min_intensity: 0.05
+    min_intensity: 0.01
 
     # Debug topics
     publish_debug_topics: false

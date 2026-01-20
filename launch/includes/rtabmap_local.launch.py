@@ -1,4 +1,3 @@
-# launch/includes/rtabmap_local.launch.py
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -59,6 +58,7 @@ def generate_launch_description():
             ("rgb/camera_info", _info),
             ("odom", _odom),
             ("gps/fix", _gps),
+            ("imu", "/imu/data"),
         ],
     )
 

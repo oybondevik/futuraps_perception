@@ -227,7 +227,7 @@ private:
       arr.markers.push_back(pts);
     }
 
-    // --- draw closest point for each cell (if we have a response) ---
+    // --- draw closest point for each cell ---
     if (have_resp_) {
       const size_t n = static_cast<size_t>(rows_) * static_cast<size_t>(cols_);
 
@@ -297,7 +297,7 @@ private:
         }
       }
 
-      // default colors if empty (shouldn't be needed, but harmless)
+      // default colors if empty
       if (pts_hit.points.empty()) {
         pts_hit.color.r = 0.8f; pts_hit.color.g = 0.8f; pts_hit.color.b = 0.8f; pts_hit.color.a = 0.6f;
       }

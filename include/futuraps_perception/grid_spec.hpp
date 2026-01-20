@@ -7,10 +7,9 @@ namespace futuraps {
 struct GridSpec {
   double min_x, max_x, min_z, max_z;
   double cell_size;
-  double min_y, max_y;       // vertical column bounds
-  double origin_x, origin_z; // cell (0,0) reference (match your viz choice)
+  double min_y, max_y;
+  double origin_x, origin_z;
   unsigned width, height;
-  // Precompute width/height/origin once from bounds + cell_size
 };
 
 inline bool in_bounds(const GridSpec& g, double x, double z) {

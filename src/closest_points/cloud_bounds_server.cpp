@@ -32,14 +32,13 @@ private:
   void on_request(const std::shared_ptr<GetCloudBounds::Request> req,
                   std::shared_ptr<GetCloudBounds::Response> resp)
   {
-    (void)req; // we only sanity-check frame below
+    (void)req;
     resp->min_x = resp->min_y = resp->min_z =  std::numeric_limits<float>::infinity();
     resp->max_x = resp->max_y = resp->max_z = -std::numeric_limits<float>::infinity();
     resp->count = 0;
 
     if (!latest_) return;
 
-    // Optional warn if frame mismatch (no TF here)
     if (!req->frame_id.empty() && req->frame_id != latest_->header.frame_id) {
       RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000,
         "Requested frame '%s' but cloud is in '%s' (no TF).",

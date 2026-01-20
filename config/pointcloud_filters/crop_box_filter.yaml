@@ -9,7 +9,7 @@ crop_box_filter:
 
     output_frame: "base_link"
     publish_frame: "map"
-    leaf_size: 0.03
+    leaf_size: 0.02
     use_latest_tf: true
     tf_timeout_sec: 0.2
     publish_marker: true

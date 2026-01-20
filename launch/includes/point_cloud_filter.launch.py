@@ -27,19 +27,12 @@ def generate_launch_description():
             parameters=[
                 crop_box_filter_cfg,
                 {
-                    "output_frame": "base_link",
-                    "publish_frame": "map",
-                    "leaf_size": 0.03,
-                    "use_latest_tf": True,
-                    "tf_timeout_sec": 0.2,
-                    "publish_marker": True,
-                    "marker_alpha": 0.15,
                     "use_sim_time": use_sim_time,
                 },
             ],
             remappings=[
-                ("input", "/octomap_occupied_space"),
-                ("output", "/octomap_cloud/local_vox"),
+                ("input", "/cloud_obstacles"),
+                ("output", "/crop_box_filtered_cloud"),
             ],
         ),
         # ------- Local Map Filter -------

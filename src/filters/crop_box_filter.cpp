@@ -106,6 +106,9 @@ CropBoxFilterNode::onParamSet(const std::vector<rclcpp::Parameter> & params)
 
 void CropBoxFilterNode::cloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
 {
+  // --- Start timing ---
+  auto t_start = std::chrono::steady_clock::now();
+
   // Read dynamic params
   const bool   use_latest_tf  = this->get_parameter("use_latest_tf").as_bool();
   const double tf_timeout_sec = this->get_parameter("tf_timeout_sec").as_double();
@@ -114,6 +117,10 @@ void CropBoxFilterNode::cloudCallback(const sensor_msgs::msg::PointCloud2::Share
   // 1) Transform input cloud to crop frame (output_frame_, e.g., base_link)
   sensor_msgs::msg::PointCloud2 cloud_in = *msg;
   sensor_msgs::msg::PointCloud2 cloud_tf = cloud_in;
+
+  // Count input points for logging
+  const std::size_t in_points =
+    static_cast<std::size_t>(cloud_in.width) * static_cast<std::size_t>(cloud_in.height);
 
   if (!output_frame_.empty() && cloud_in.header.frame_id != output_frame_)
   {
@@ -171,10 +178,23 @@ void CropBoxFilterNode::cloudCallback(const sensor_msgs::msg::PointCloud2::Share
   pcl_conversions::fromPCL(*pcl_out, out);
 
   if (out.width == 0 || out.height == 0 || out.data.empty()) {
+    // Still log timing, but with 0 output points
+    auto t_end = std::chrono::steady_clock::now();
+    double dt_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+    std::size_t out_points = 0;
+
+    RCLCPP_INFO(
+      get_logger(),
+      "PROC_TIME,node=crop_box,dt_ms=%.3f,in_pts=%zu,out_pts=%zu",
+      dt_ms, in_points, out_points);
+
     RCLCPP_DEBUG_THROTTLE(get_logger(), *get_clock(), 2000,
                           "Crop yielded 0 points -> not publishing");
     return;
   }
+
+  const std::size_t out_points =
+    static_cast<std::size_t>(out.width) * static_cast<std::size_t>(out.height);
 
   // Out is currently in output_frame_. Transform to publish_frame if needed.
   if (!publish_frame.empty() && publish_frame != output_frame_) {
@@ -187,6 +207,14 @@ void CropBoxFilterNode::cloudCallback(const sensor_msgs::msg::PointCloud2::Share
       tf2::doTransform(out, out_tf, tf_pub);
       out = std::move(out_tf);
     } catch (const std::exception& e) {
+      auto t_end = std::chrono::steady_clock::now();
+      double dt_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+
+      RCLCPP_INFO(
+        get_logger(),
+        "PROC_TIME,node=crop_box,dt_ms=%.3f,in_pts=%zu,out_pts=%zu",
+        dt_ms, in_points, out_points);
+
       RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000,
         "Final publish transform %s <- %s failed: %s",
         publish_frame.c_str(), output_frame_.c_str(), e.what());
@@ -194,19 +222,29 @@ void CropBoxFilterNode::cloudCallback(const sensor_msgs::msg::PointCloud2::Share
     }
   }
 
-  // Stamp 'now' (we're publishing in the target frame, so RViz won't need TF to render it)
+  // Stamp 'now' 
   out.header.stamp    = this->now();
   out.header.frame_id = publish_frame.empty() ? output_frame_ : publish_frame;
   pub_->publish(out);
 
-  // Update the marker (kept in output_frame_, stamped 'latest' so it renders under map fixed frame)
+  // Update the marker
   publishMarker();
 
   RCLCPP_INFO_THROTTLE(
     get_logger(), *get_clock(), 2000,
     "Published local cloud (w=%u h=%u) in frame %s",
     out.width, out.height, out.header.frame_id.c_str());
+
+  // --- End timing + log ---
+  auto t_end = std::chrono::steady_clock::now();
+  double dt_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+
+  RCLCPP_INFO(
+    get_logger(),
+    "PROC_TIME,node=crop_box,dt_ms=%.3f,in_pts=%zu,out_pts=%zu",
+    dt_ms, in_points, out_points);
 }
+
 
 void CropBoxFilterNode::publishMarker()
 {
@@ -217,7 +255,7 @@ void CropBoxFilterNode::publishMarker()
 
   visualization_msgs::msg::Marker m;
   m.header.frame_id = output_frame_;  // keep marker anchored to crop frame (e.g., base_link)
-  m.header.stamp    = rclcpp::Time(0, 0, this->get_clock()->get_clock_type()); // "latest" so RViz always renders it
+  m.header.stamp    = rclcpp::Time(0, 0, this->get_clock()->get_clock_type()); 
 
   m.ns   = "local_box";
   m.id   = 0;

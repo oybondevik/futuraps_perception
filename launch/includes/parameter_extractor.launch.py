@@ -28,8 +28,8 @@ def generate_launch_description():
         # -------- Canopy Density Estimator Server --------
         Node(
             package="futuraps_perception",
-            executable="canopy_density_node",
-            name="canopy_density_node",
+            executable="canopy_density_server",
+            name="canopy_density_server",
             output="screen",
             parameters=[canopy_density_cfg, {"use_sim_time": use_sim_time}],
         ),

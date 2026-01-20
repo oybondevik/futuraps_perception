@@ -302,9 +302,9 @@ private:
     m.scale.z = head_len_;
 
     m.color.a = 1.0f;
-    m.color.r = static_cast<float>(t);
-    m.color.g = static_cast<float>(1.0 - 0.5*t);
-    m.color.b = 0.0f;
+    m.color.r = 1.0f; //static_cast<float>(t);
+    m.color.g = 0.0f; //static_cast<float>(1.0 - 0.5*t);
+    m.color.b = 1.0f; //0.0f;
 
     m.lifetime = rclcpp::Duration::from_seconds(0.0);
     latest_markers_[cell_id] = std::move(m);
